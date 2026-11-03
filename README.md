@@ -17,7 +17,7 @@ backend/
   evaluation/evaluate.py     recall@k, MRR, accuracy, faithfulness, refusals, leaks, latency
   data/eval/questions.json   26 test questions (answerable, permission, unanswerable)
 frontend/                    React (Vite) chat UI
-docs/                        architecture diagram (Mermaid) + evaluation report template
+docs/                        architecture diagram (image + Mermaid), evaluation report (PDF + template)
 ```
 
 ## 1. Backend setup (Heropa VM)
@@ -73,7 +73,9 @@ python -m evaluation.evaluate --configs docs_fixed:hybrid:rerank docs_recursive:
 Results are written to `evaluation/results/`. Paste the summary table into `docs/eval_report_template.md`.
 
 ## 6. Architecture diagram
-Paste `docs/architecture.mmd` into https://mermaid.live and export it as PNG, or redraw it in draw.io.
+![Architecture](docs/architecture.webp)
+
+Source: `docs/architecture.mmd` (render it at https://mermaid.live).
 
 ## Mapping to the submission checklist
 | Deliverable | Where |
@@ -84,8 +86,8 @@ Paste `docs/architecture.mmd` into https://mermaid.live and export it as PNG, or
 | Orchestrator, multi-turn | `agents/orchestrator.py` |
 | Grounded answers + hallucination check | `agents/synthesis.py` |
 | React chat with citations | `frontend/src/App.jsx` |
-| Evaluation report | `evaluation/results/*` + `docs/eval_report_template.md` |
-| Architecture diagram | `docs/architecture.mmd` |
+| Evaluation report | [`docs/Evaluation_Report_Multi-Agent_RAG.pdf`](docs/Evaluation_Report_Multi-Agent_RAG.pdf), `evaluation/results/*` |
+| Architecture diagram | `docs/architecture.webp`, `docs/architecture.mmd` |
 
 ## Troubleshooting
 - **429 / quota errors:** the free Gemini tier is rate-limited. The code retries with backoff; you can also raise `--sleep` in the evaluation.
