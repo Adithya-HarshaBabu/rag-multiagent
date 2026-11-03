@@ -1,0 +1,11 @@
+.DS_Store
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+node_modules/
+dist/
+backend/logs/*
+!backend/logs/.gitkeep
+backend/qdrant_data/

@@ -1,0 +1,50 @@
+flowchart LR
+    U([User]) --> UI[React Chat UI<br/>citations · ingestion status · role picker]
+    UI -- "/chat  /ingest  /status" --> API[FastAPI backend]
+    API --> ORC
+
+    subgraph ORC_BOX[Orchestrator Agent]
+        ORC[Intent classifier<br/>ingest / question / clarify<br/>+ follow-up query rewrite<br/>+ session state]
+    end
+
+    ORC -- ingest --> ING
+    ORC -- clarify --> API
+    ORC -- question --> RET
+
+    subgraph ING_BOX[Ingestion Agent]
+        ING[Load<br/>python-docx · pypdf · md] --> CL[Clean<br/>headers/footers, whitespace] --> CH{Chunk}
+        CH -- fixed 500 --> E1[Embed<br/>gemini-embedding-001]
+        CH -- recursive 800 --> E1
+    end
+
+    E1 -- "upsert, deterministic IDs + metadata<br/>source · author · date · access_tags" --> QD
+
+    subgraph QD[(Qdrant)]
+        C1[docs_fixed]
+        C2[docs_recursive]
+    end
+
+    subgraph RET_BOX[Retrieval Agent]
+        RET[Embed query] --> DS[Dense search]
+        RET --> KW[BM25 keyword search]
+        DS --> RRF[RRF merge]
+        KW --> RRF
+        RRF --> RR[Cross-encoder re-rank<br/>ms-marco-MiniLM]
+    end
+
+    QD -. "permission filter on access_tags" .-> DS
+    QD -.-> KW
+
+    RR -- top-k chunks --> SYN
+
+    subgraph SYN_BOX[Synthesis Agent]
+        SYN[Gemini answer<br/>with inline citations] --> HC[Hallucination check<br/>per-sentence verification]
+        HC --> NC{Enough context?}
+    end
+
+    NC -- grounded answer + citations --> API
+    NC -- no --> NOC[No-context reply] --> API
+
+    API --> LOG[(turns.jsonl log)]
+    LOG --> EV[Evaluation script<br/>recall@k · MRR · faithfulness · latency]
+    QD --> EV
